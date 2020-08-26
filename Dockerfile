@@ -13,7 +13,10 @@ RUN apt-get -qq update \
     cmake \
     libelf-dev \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    software-properties-common \
+    python3.7 python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install cpplint
 
 WORKDIR /tmp
 ADD http://www.accellera.org/images/downloads/standards/systemc/${SYSTEMC}.tar.gz ${SYSTEMC}.tar.gz
