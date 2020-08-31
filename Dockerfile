@@ -5,6 +5,8 @@ ENV DEBIAN_FRONTEND noninteractive
 ARG SYSTEMC="systemc-2.3.3"
 ARG SYSTEMC_HOME="/opt/${SYSTEMC}"
 ARG VCML_HOME="/opt/vcml"
+ARG VCML_BUILD_TYPE="RELEASE"
+# ARG VCML_BUILD_TYPE="DEBUG"
 
 RUN apt-get -qq update \
 && apt-get -qqy install \
@@ -32,11 +34,18 @@ ENV SYSTEMC_HOME ${SYSTEMC_HOME}
 WORKDIR /tmp
 ADD https://github.com/janweinstock/vcml/tarball/master vcml.tar
 RUN tar -xzf vcml.tar && cd janweinstock-vcml-* \
-    && mkdir BUILD && cd BUILD \
-    && cmake -DCMAKE_INSTALL_PREFIX=${VCML_HOME} -DCMAKE_BUILD_TYPE=RELEASE .. \
-    && make -j 4 && make install \
-    && cd ../..\
-    && rm -rf /tmp/*
+    && mkdir -p BUILD/RELEASE && cd BUILD/RELEASE \
+    && cmake -DCMAKE_INSTALL_PREFIX=${VCML_HOME} -DCMAKE_BUILD_TYPE=RELEASE ../.. \
+    && make -j 4 && make install
+
+RUN cd janweinstock-vcml-* \
+    && mkdir -p BUILD/DEBUG && cd BUILD/DEBUG \
+    && cmake -DCMAKE_INSTALL_PREFIX=/tmp/debug -DCMAKE_BUILD_TYPE=DEBUG ../.. \
+    && make -j 4 && make install
+
+RUN mv /tmp/debug/lib/libvcmld.a ${VCML_HOME}/lib/libvcmld.a
+RUN rm -rf /tmp/*
+
 ENV VCML_HOME ${VCML_HOME}
 
 ENTRYPOINT /bin/bash
